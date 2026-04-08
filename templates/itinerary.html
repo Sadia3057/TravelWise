@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Itinerary — TravelWise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- Leaflet.js — Free interactive maps, no API key needed -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#0d1117;--sand:#f5efe6;--gold:#c9a84c;--teal:#1a6b6b;--teal-light:#2a9b9b;--subtle:#718096;--card:#fff}
+body{font-family:'DM Sans',sans-serif;background:#f0f4f8;min-height:100vh}
+nav{background:var(--ink);padding:16px 40px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.logo{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.4rem;letter-spacing:2px;text-decoration:none}
+.nav-right{display:flex;gap:8px;align-items:center}.nav-right a{color:rgba(255,255,255,0.65);text-decoration:none;font-size:0.88rem;padding:7px 16px;border-radius:6px;transition:all .2s}
+.nav-right a:hover{color:#fff;background:rgba(255,255,255,0.08)}.nav-right a.active{color:#fff;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3)}
+.container{max-width:1000px;margin:0 auto;padding:28px 24px}
+
+/* HEADER */
+.itin-header{background:linear-gradient(135deg,var(--teal),#0d3d3d);color:#fff;border-radius:12px;padding:40px;margin-bottom:24px;position:relative;overflow:hidden}
+.itin-header::before{content:'';position:absolute;top:-40%;right:-10%;width:300px;height:300px;border-radius:50%;background:rgba(201,168,76,0.1)}
+.itin-dest{font-family:'Playfair Display',serif;font-size:2.2rem;margin-bottom:6px;position:relative}
+.itin-meta{opacity:.7;font-size:0.95rem;margin-bottom:20px}
+.itin-chips{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+.chip{background:rgba(255,255,255,0.15);padding:5px 14px;border-radius:20px;font-size:0.8rem}
+.header-actions{display:flex;gap:12px;flex-wrap:wrap}
+.btn-action{padding:10px 20px;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;transition:all .2s;border:none;display:flex;align-items:center;gap:7px}
+.btn-pdf{background:var(--gold);color:var(--ink)}
+.btn-pdf:hover{background:#e8c96d;transform:translateY(-1px)}
+.btn-print{background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.3)}
+.btn-print:hover{background:rgba(255,255,255,0.25)}
+.btn-email{background:#2a9b9b;color:#fff}
+.btn-email:hover{background:#1a6b6b;transform:translateY(-1px)}
+
+/* Email Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:#fff;border-radius:12px;padding:32px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,0.2)}
+.modal-box h3{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--ink);margin-bottom:6px}
+.modal-box p{color:var(--subtle);font-size:0.85rem;margin-bottom:20px}
+.modal-input{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:6px;font-family:'DM Sans',sans-serif;font-size:0.92rem;outline:none;transition:border-color .2s;margin-bottom:16px}
+.modal-input:focus{border-color:var(--teal)}
+.modal-actions{display:flex;gap:10px}
+.btn-modal-send{flex:1;padding:11px;background:var(--teal);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.92rem;font-weight:500;transition:background .2s}
+.btn-modal-send:hover{background:var(--teal-light)}
+.btn-modal-send:disabled{opacity:.6;cursor:not-allowed}
+.btn-modal-cancel{padding:11px 18px;background:#f1f5f9;color:var(--ink);border:none;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.92rem;transition:background .2s}
+.btn-modal-cancel:hover{background:#e2e8f0}
+.modal-status{margin-top:14px;padding:10px 14px;border-radius:6px;font-size:0.85rem;display:none}
+.modal-status.success{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;display:block}
+.modal-status.error{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;display:block}
+
+/* WEATHER */
+.weather-card{background:var(--card);border-radius:14px;padding:20px 24px;margin-bottom:24px;box-shadow:0 4px 16px rgba(0,0,0,0.07);display:flex;align-items:center;gap:20px;flex-wrap:wrap;min-height:76px}
+.weather-icon{font-size:2.8rem;flex-shrink:0}
+.weather-main{flex:1}
+.weather-temp{font-family:'Playfair Display',serif;font-size:2rem;color:var(--ink)}
+.weather-desc{color:var(--subtle);font-size:0.9rem;margin-top:2px}
+.weather-city-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-weight:500;color:var(--teal)}
+.weather-details{display:flex;gap:20px;flex-wrap:wrap;margin-top:6px}
+.weather-detail{font-size:0.82rem;color:var(--subtle)}
+.weather-detail strong{color:var(--ink)}
+.badge{font-size:0.7rem;padding:3px 10px;border-radius:20px;border:1px solid}
+.badge-mock{background:#fff3cd;color:#856404;border-color:#ffc107}
+.badge-live{background:#dcfce7;color:#166534;border-color:#86efac}
+.weather-loading{display:flex;align-items:center;gap:10px;color:var(--subtle);font-size:0.9rem;width:100%}
+.w-spinner{width:20px;height:20px;border:2px solid #e2e8f0;border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* MAP */
+.map-card{background:var(--card);border-radius:14px;overflow:hidden;margin-bottom:24px;box-shadow:0 4px 16px rgba(0,0,0,0.07)}
+.map-card-header{padding:14px 20px;background:var(--ink);color:#fff;display:flex;justify-content:space-between;align-items:center}
+.map-card-header h3{font-family:'Playfair Display',serif;font-size:1rem}
+.map-toggle{background:rgba(255,255,255,0.15);border:none;color:#fff;padding:5px 14px;border-radius:4px;cursor:pointer;font-size:0.8rem;font-family:'DM Sans',sans-serif;transition:background .2s}
+.map-toggle:hover{background:rgba(255,255,255,0.25)}
+#leafletMap{height:420px;width:100%;display:block}
+.map-legend{padding:12px 20px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;gap:16px;flex-wrap:wrap;font-size:0.8rem;color:var(--subtle)}
+.legend-item{display:flex;align-items:center;gap:6px}
+.legend-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+
+/* DAYS */
+.section-title{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--ink);margin-bottom:16px}
+.day-card{background:var(--card);border-radius:14px;margin-bottom:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.07)}
+.day-header{padding:16px 24px;background:var(--ink);color:#fff;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.day-title{font-family:'Playfair Display',serif;font-size:1.05rem}
+.day-toggle{font-size:1rem;transition:transform .3s}
+.day-header.open .day-toggle{transform:rotate(180deg)}
+.day-body{padding:8px 24px 20px}
+.timeline{position:relative;padding-left:30px}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:#e2e8f0}
+.tl-item{position:relative;padding:14px 0 14px 20px;border-bottom:1px solid #f5f5f5}
+.tl-item:last-child{border-bottom:none}
+.tl-dot{position:absolute;left:-26px;top:50%;transform:translateY(-50%);width:16px;height:16px;border-radius:50%;background:var(--teal);border:3px solid #fff;box-shadow:0 0 0 2px var(--teal)}
+.tl-dot.travel{background:var(--gold)}.tl-dot.food{background:#e53e3e}.tl-dot.leisure{background:#805ad5}
+.tl-time{font-size:0.78rem;color:var(--subtle);margin-bottom:3px}
+.tl-activity{font-size:0.95rem;color:var(--ink)}
+.map-link{display:inline-flex;align-items:center;gap:4px;margin-top:5px;font-size:0.75rem;
+  color:#1a73e8;text-decoration:none;padding:3px 8px;border-radius:20px;
+  background:#e8f0fe;border:1px solid #c5d5fb;transition:all .2s;font-weight:500}
+.map-link:hover{background:#1a73e8;color:#fff;border-color:#1a73e8}
+.map-link svg{flex-shrink:0}
+.nearby-label{font-size:0.7rem;color:var(--subtle);display:block;margin-top:4px;margin-bottom:2px}
+.tl-type{display:inline-block;font-size:0.68rem;text-transform:uppercase;letter-spacing:1px;padding:2px 7px;border-radius:20px;margin-left:8px}
+.type-sightseeing{background:#ebf8ff;color:#2b6cb0}.type-activity{background:#f0fff4;color:#276749}
+.type-food{background:#fff5f5;color:#c53030}.type-travel{background:#fffff0;color:#975a16}.type-leisure{background:#faf5ff;color:#553c9a}
+
+/* REVIEWS */
+.reviews-section{margin-top:32px}
+.reviews-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.btn-write-review{background:var(--teal);color:#fff;border:none;padding:10px 20px;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.88rem;transition:background .2s}
+.btn-write-review:hover{background:var(--teal-light)}
+.review-form{background:var(--card);border-radius:8px;padding:24px;margin-bottom:20px;box-shadow:0 4px 16px rgba(0,0,0,0.07);display:none}
+.review-form.show{display:block}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:0.78rem;font-weight:500;color:var(--ink);margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase}
+.form-group textarea{width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:0.9rem;resize:vertical;min-height:90px;outline:none;transition:border-color .2s}
+.form-group textarea:focus{border-color:var(--teal)}
+.star-rating{display:flex;gap:6px;font-size:1.8rem;cursor:pointer}
+.star{color:#e2e8f0;transition:color .15s;user-select:none}
+.star.active{color:var(--gold)}
+.review-actions{display:flex;gap:10px;margin-top:16px}
+.btn-submit-review{background:var(--teal);color:#fff;border:none;padding:10px 24px;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.9rem}
+.btn-submit-review:hover{background:var(--teal-light)}
+.btn-cancel-review{background:none;border:1px solid #e2e8f0;color:var(--subtle);padding:10px 20px;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.9rem}
+.sentiment-result{margin-top:10px;font-size:0.85rem;padding:10px 14px;border-radius:4px;display:none;font-weight:500}
+.sentiment-result.Positive{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.sentiment-result.Negative{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.sentiment-result.Neutral{background:#f8fafc;color:#475569;border:1px solid #e2e8f0}
+.review-summary{background:var(--card);border-radius:8px;padding:20px 24px;margin-bottom:16px;box-shadow:0 4px 16px rgba(0,0,0,0.07);display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+.review-big-rating{font-family:'Playfair Display',serif;font-size:2.4rem;color:var(--ink)}
+.review-big-rating span{font-size:1rem;color:var(--subtle)}
+.review-bars{flex:1;min-width:180px}
+.review-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:0.8rem}
+.bar-label{width:58px;color:var(--subtle)}
+.bar-track{flex:1;background:#e2e8f0;border-radius:2px;height:7px}
+.bar-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.review-card{background:var(--card);border-radius:8px;padding:18px 22px;margin-bottom:12px;box-shadow:0 2px 10px rgba(0,0,0,0.05);border-left:4px solid var(--sand)}
+.review-card.Positive{border-left-color:#22c55e}.review-card.Negative{border-left-color:#ef4444}.review-card.Neutral{border-left-color:#94a3b8}
+.review-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.reviewer-name{font-weight:500;color:var(--ink);font-size:0.9rem}
+.review-stars{color:var(--gold);font-size:0.9rem;letter-spacing:2px}
+.review-text{color:#4a5568;font-size:0.92rem;line-height:1.65}
+.review-meta{display:flex;gap:10px;margin-top:8px;font-size:0.75rem;color:#a0aec0;align-items:center}
+.review-sentiment-badge{padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:500}
+.badge-Positive{background:#f0fdf4;color:#16a34a}.badge-Negative{background:#fef2f2;color:#dc2626}.badge-Neutral{background:#f8fafc;color:#475569}
+.btn-delete-review{margin-left:auto;background:none;border:none;color:#cbd5e0;cursor:pointer;font-size:0.8rem;padding:2px 6px;border-radius:4px;transition:all .2s}
+.btn-delete-review:hover{background:#fef2f2;color:#dc2626}
+
+/* Overall sentiment banner */
+.overall-sentiment{border-radius:8px;padding:16px 22px;margin-bottom:16px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 10px rgba(0,0,0,0.06)}
+.overall-sentiment.Positive{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #bbf7d0}
+.overall-sentiment.Negative{background:linear-gradient(135deg,#fef2f2,#fee2e2);border:1px solid #fecaca}
+.overall-sentiment.Neutral{background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:1px solid #e2e8f0}
+.overall-icon{font-size:2rem;flex-shrink:0}
+.overall-label{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700}
+.overall-label.Positive{color:#16a34a}.overall-label.Negative{color:#dc2626}.overall-label.Neutral{color:#475569}
+.overall-sub{font-size:0.82rem;color:var(--subtle);margin-top:2px}
+.overall-breakdown{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap}
+.breakdown-pill{font-size:0.75rem;padding:4px 10px;border-radius:20px;font-weight:500}
+.pill-pos{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
+.pill-neu{background:#f8fafc;color:#475569;border:1px solid #e2e8f0}
+.pill-neg{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
+.empty-reviews{text-align:center;padding:48px;color:var(--subtle);background:var(--card);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.07)}
+.no-itin{text-align:center;padding:80px;color:var(--subtle)}
+.no-itin h2{font-family:'Playfair Display',serif;color:var(--ink);margin-bottom:12px}
+.btn-back{display:inline-block;margin-top:20px;padding:12px 28px;background:var(--teal);color:#fff;border-radius:4px;text-decoration:none}
+
+
+/* ── MOBILE RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  nav{padding:12px 16px;position:relative}
+  .hamburger{display:flex;flex-direction:column;gap:5px;cursor:pointer;
+    background:none;border:none;padding:4px}
+  .hamburger span{width:22px;height:2px;background:#fff;border-radius:2px}
+  .nav-menu{display:none;position:absolute;top:56px;left:0;right:0;
+    background:var(--ink);flex-direction:column;padding:16px;gap:0;
+    z-index:999;border-top:1px solid rgba(255,255,255,0.1)}
+  .nav-menu.open{display:flex}
+  .nav-menu a{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.07)}
+  .nav-right{display:none}
+  .container{padding:16px}
+  .itin-header{padding:24px 20px}
+  .itin-dest{font-size:1.6rem}
+  .header-actions{flex-wrap:wrap;gap:8px}
+  .btn-action{padding:9px 14px;font-size:0.8rem}
+  .day-card{padding:16px}
+  .schedule-item{flex-direction:column;gap:4px}
+  .schedule-time{min-width:auto;font-size:0.75rem}
+  .map-card{height:280px}
+  .modal-box{padding:20px;margin:16px}
+  .modal-actions{flex-direction:column}
+  .btn-modal-send,.btn-modal-cancel{width:100%}
+}
+@media (max-width: 480px) {
+  .itin-chips{gap:6px}
+  .chip{font-size:0.72rem;padding:4px 10px}
+  .review-card{padding:14px}
+  .rating-stars span{font-size:1.5rem}
+}
+@media print{
+  nav,.header-actions,.weather-card,.map-card,.reviews-section{display:none!important}
+  body{background:#fff}
+  .day-body{display:block!important}
+  .itin-header{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .day-card{break-inside:avoid;box-shadow:none;border:1px solid #e2e8f0}
+}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">TravelWise</a>
+  <button class="hamburger" id="hamburger" onclick="toggleNav()" style="display:none">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-right nav-menu" id="navMenu">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/planner">Plan Trip</a>
+    <a href="/chatbot">AI Chatbot</a>
+    <a href="/logout">Logout</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div id="itinContent"></div>
+</div>
+
+<script>
+const raw       = sessionStorage.getItem('itinerary');
+const container = document.getElementById('itinContent');
+let DESTINATION  = '';
+let selectedRating = 0;
+let leafletMap   = null;
+let itin         = null;   // global — used by sendEmail()
+
+const WEATHER_ICONS = {
+  '01d':'☀️','01n':'🌙','02d':'⛅','02n':'⛅','03d':'☁️','03n':'☁️',
+  '04d':'☁️','04n':'☁️','09d':'🌧️','09n':'🌧️','10d':'🌦️','10n':'🌦️',
+  '11d':'⛈️','11n':'⛈️','13d':'❄️','13n':'❄️','50d':'🌫️','50n':'🌫️',
+};
+
+// Day colours for map markers
+const DAY_COLORS = ['#1a6b6b','#c9a84c','#e53e3e','#805ad5','#2563eb','#059669','#ea580c'];
+
+/* ══════════════════════════════════════════════════════════════════════
+   MAIN RENDER
+══════════════════════════════════════════════════════════════════════ */
+if (!raw) {
+  container.innerHTML = `
+    <div class="no-itin">
+      <div style="font-size:3rem;margin-bottom:16px">📋</div>
+      <h2>No Itinerary Found</h2>
+      <p>Go back to the planner and select a destination.</p>
+      <a href="/planner" class="btn-back">← Go to Planner</a>
+    </div>`;
+} else {
+  itin = JSON.parse(raw);
+  DESTINATION = itin.destination;
+
+  let html = `
+    <div class="itin-header">
+      <div class="itin-dest">📍 ${itin.destination}</div>
+      <div class="itin-meta">${itin.num_days}-Day ${itin.trip_type} Trip · AI Generated</div>
+      <div class="itin-chips">
+        <span class="chip">📅 ${itin.num_days} Days</span>
+        <span class="chip">👤 ${itin.trip_type}</span>
+        <span class="chip">✨ AI Generated</span>
+      </div>
+      <div class="header-actions">
+        <button class="btn-action btn-pdf" onclick="exportPDF()">📄 Download PDF</button>
+        <button class="btn-action btn-print" onclick="window.print()">🖨️ Print</button>
+        <button class="btn-action btn-email" onclick="openEmailModal()">📧 Email Itinerary</button>
+      </div>
+    </div>
+
+    <!-- WEATHER -->
+    <div class="weather-card" id="weatherCard">
+      <div class="weather-loading">
+        <div class="w-spinner"></div> Loading live weather for ${itin.destination}...
+      </div>
+    </div>
+
+    <!-- LEAFLET MAP -->
+    <div class="map-card">
+      <div class="map-card-header">
+        <h3>🗺️ ${itin.destination} — Day-wise Places on Map</h3>
+        <button class="map-toggle" id="mapToggleBtn" onclick="toggleMap()">Hide Map ▲</button>
+      </div>
+      <div id="mapWrapper">
+        <div id="leafletMap"></div>
+        <div class="map-legend" id="mapLegend"></div>
+      </div>
+    </div>
+
+    <!-- DAY CARDS -->
+    <div class="section-title">🗓️ Day-by-Day Itinerary</div>`;
+
+  itin.days.forEach((day, i) => {
+    html += `
+      <div class="day-card">
+        <div class="day-header ${i===0?'open':''}" onclick="toggleDay(this)">
+          <span class="day-title">${day.title}</span>
+          <span class="day-toggle">▼</span>
+        </div>
+        <div class="day-body" ${i>0?'style="display:none"':''}>
+          <div class="timeline">`;
+    day.schedule.forEach(item => {
+      // Build Google Maps URL based on activity type
+      const dest = encodeURIComponent(itin.destination);
+      const act  = encodeURIComponent(item.activity);
+      let mapUrl  = '';
+      let mapText = '';
+      let nearbyUrl = '';
+      let nearbyText = '';
+
+      if (item.type === 'sightseeing') {
+        // Link to the specific place
+        mapUrl   = `https://www.google.com/maps/search/${act}+${dest}`;
+        mapText  = '📍 View on Map';
+        // Nearby restaurants
+        nearbyUrl  = `https://www.google.com/maps/search/restaurants+near+${act}+${dest}`;
+        nearbyText = '🍽️ Nearby Restaurants';
+      } else if (item.type === 'food') {
+        mapUrl   = `https://www.google.com/maps/search/restaurants+near+${dest}`;
+        mapText  = '🍽️ Find Restaurants';
+        nearbyUrl  = `https://www.google.com/maps/search/cafes+near+${dest}`;
+        nearbyText = '☕ Find Cafes';
+      } else if (item.type === 'activity') {
+        mapUrl   = `https://www.google.com/maps/search/${act}+${dest}`;
+        mapText  = '📍 View on Map';
+        nearbyUrl  = `https://www.google.com/maps/search/hotels+near+${act}+${dest}`;
+        nearbyText = '🏨 Nearby Hotels';
+      } else if (item.type === 'leisure') {
+        mapUrl   = `https://www.google.com/maps/search/shopping+markets+near+${dest}`;
+        mapText  = '🛍️ Find Markets';
+        nearbyUrl  = '';
+      } else {
+        mapUrl  = '';
+        mapText = '';
+      }
+
+      const mapLinks = mapUrl ? `
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px">
+          <a href="${mapUrl}" target="_blank" rel="noopener" class="map-link">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            ${mapText}
+          </a>
+          ${nearbyUrl ? `<a href="${nearbyUrl}" target="_blank" rel="noopener" class="map-link" style="background:#f0fdf4;border-color:#bbf7d0;color:#166534">${nearbyText}</a>` : ''}
+        </div>` : '';
+
+      html += `
+            <div class="tl-item">
+              <div class="tl-dot ${item.type}"></div>
+              <div class="tl-time">${item.time}</div>
+              <div class="tl-activity">
+                ${item.activity}
+                <span class="tl-type type-${item.type}">${item.type}</span>
+                ${mapLinks}
+              </div>
+            </div>`;
+    });
+    html += `</div></div></div>`;
+  });
+
+  /* REVIEWS */
+  html += `
+    <div class="reviews-section">
+      <div class="reviews-header">
+        <h2 class="section-title" style="margin-bottom:0">⭐ Traveller Reviews — ${itin.destination}</h2>
+        <button class="btn-write-review" onclick="toggleReviewForm()">✍️ Write a Review</button>
+      </div>
+      <div class="review-form" id="reviewForm">
+        <h3 style="font-family:'Playfair Display',serif;margin-bottom:16px;font-size:1.1rem">Share Your Experience</h3>
+        <div class="form-group">
+          <label>Your Rating</label>
+          <div class="star-rating">
+            ${[1,2,3,4,5].map(v=>`<span class="star" data-v="${v}"
+              onclick="setRating(${v})"
+              onmouseover="hoverRating(${v})"
+              onmouseout="resetHover()">★</span>`).join('')}
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Your Review</label>
+          <textarea id="reviewText" placeholder="Share what you loved, tips for other travellers..."></textarea>
+        </div>
+        <div class="sentiment-result" id="sentimentResult"></div>
+        <div class="review-actions">
+          <button class="btn-submit-review" onclick="submitReview()">Submit Review</button>
+          <button class="btn-cancel-review" onclick="toggleReviewForm()">Cancel</button>
+        </div>
+      </div>
+      <div id="reviewsList">
+        <div style="text-align:center;padding:24px;color:var(--subtle)">⏳ Loading reviews...</div>
+      </div>
+    </div>`;
+
+  container.innerHTML = html;
+
+  // Now init everything
+  loadWeather(itin.destination);
+  loadReviews(itin.destination);
+  setTimeout(() => initLeafletMap(itin), 100); // slight delay so DOM is ready
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   LEAFLET MAP — pins for destination + all day highlights
+══════════════════════════════════════════════════════════════════════ */
+function initLeafletMap(itin) {
+  const lat = itin.lat || 20.5937;
+  const lng = itin.lng || 78.9629;
+
+  // Init map centred on destination
+  leafletMap = L.map('leafletMap', { zoomControl: true, scrollWheelZoom: true });
+
+  // OpenStreetMap tile layer — completely free, no key needed
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 18
+  }).addTo(leafletMap);
+
+  const allMarkers = [];
+  const legendItems = [];
+
+  // ── Main destination star marker ──────────────────────────────────────
+  const starIcon = L.divIcon({
+    html: `<div style="
+      background:#c9a84c;color:#fff;border-radius:50%;
+      width:36px;height:36px;display:flex;align-items:center;
+      justify-content:center;font-size:18px;
+      border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.4)">⭐</div>`,
+    className: '',
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
+    popupAnchor: [0, -20]
+  });
+
+  const mainMarker = L.marker([lat, lng], {icon: starIcon})
+    .addTo(leafletMap)
+    .bindPopup(`<strong>📍 ${itin.destination}</strong><br><small>Your destination</small>`, {maxWidth: 200});
+  allMarkers.push([lat, lng]);
+
+  // ── Day highlights markers ─────────────────────────────────────────────
+  // Collect sightseeing stops per day and offset slightly so they don't overlap
+  let markerCount = 0;
+  const usedCoords = [];
+
+  itin.days.forEach((day, dayIdx) => {
+    const color = DAY_COLORS[dayIdx % DAY_COLORS.length];
+    const sightseeingItems = day.schedule.filter(s => s.type === 'sightseeing');
+
+    sightseeingItems.forEach((item, itemIdx) => {
+      // Offset each marker slightly around the destination centre
+      // so they're visible as separate pins (real geocoding not available without key)
+      const angle  = (markerCount * 67) % 360;               // spread around in a spiral
+      const radius = 0.03 + (markerCount % 4) * 0.015;       // increasing radius per ring
+      const mLat   = lat + radius * Math.sin(angle * Math.PI / 180);
+      const mLng   = lng + radius * Math.cos(angle * Math.PI / 180);
+      markerCount++;
+
+      const numIcon = L.divIcon({
+        html: `<div style="
+          background:${color};color:#fff;border-radius:50%;
+          width:28px;height:28px;display:flex;align-items:center;
+          justify-content:center;font-size:11px;font-weight:700;
+          font-family:'DM Sans',sans-serif;
+          border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);
+          white-space:nowrap">${markerCount}</div>`,
+        className: '',
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+        popupAnchor: [0, -16]
+      });
+
+      L.marker([mLat, mLng], {icon: numIcon})
+        .addTo(leafletMap)
+        .bindPopup(`
+          <div style="font-family:'DM Sans',sans-serif;min-width:160px">
+            <div style="font-weight:600;color:${color};margin-bottom:4px">Day ${dayIdx+1}</div>
+            <div style="font-size:0.9rem;color:#0d1117">${item.activity}</div>
+            <div style="font-size:0.75rem;color:#718096;margin-top:4px">${item.time}</div>
+          </div>`, {maxWidth: 220});
+      allMarkers.push([mLat, mLng]);
+    });
+
+    // Legend entry per day
+    if (sightseeingItems.length > 0) {
+      legendItems.push(`
+        <div class="legend-item">
+          <div class="legend-dot" style="background:${color}"></div>
+          <span>Day ${dayIdx+1}: ${sightseeingItems.map(s=>s.activity).join(', ').substring(0,50)}${sightseeingItems.map(s=>s.activity).join(', ').length > 50 ? '...' : ''}</span>
+        </div>`);
+    }
+  });
+
+  // Legend
+  document.getElementById('mapLegend').innerHTML =
+    `<div class="legend-item"><div class="legend-dot" style="background:#c9a84c;border-radius:0;font-size:10px;width:auto;height:auto;background:none">⭐</div><span>${itin.destination} (Main Destination)</span></div>` +
+    legendItems.join('');
+
+  // Fit map to show all markers
+  if (allMarkers.length > 0) {
+    const bounds = L.latLngBounds(allMarkers);
+    leafletMap.fitBounds(bounds, { padding: [40, 40] });
+  } else {
+    leafletMap.setView([lat, lng], 11);
+  }
+
+  // Open main popup on load
+  mainMarker.openPopup();
+}
+
+function toggleMap() {
+  const wrapper = document.getElementById('mapWrapper');
+  const btn     = document.getElementById('mapToggleBtn');
+  const isOpen  = wrapper.style.display !== 'none';
+  wrapper.style.display = isOpen ? 'none' : 'block';
+  btn.textContent       = isOpen ? 'Show Map ▼' : 'Hide Map ▲';
+  // Invalidate Leaflet size when shown (fixes grey tiles bug)
+  if (!isOpen && leafletMap) {
+    setTimeout(() => leafletMap.invalidateSize(), 50);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   WEATHER
+══════════════════════════════════════════════════════════════════════ */
+async function loadWeather(city) {
+  try {
+    const res  = await fetch(`/api/weather/${encodeURIComponent(city)}`);
+    const data = await res.json();
+    if (data.status === 'success') renderWeather(data.weather);
+    else renderWeatherError(data.message || 'Weather unavailable');
+  } catch(e) {
+    renderWeatherError('Could not connect to weather service');
+  }
+}
+
+function renderWeather(w) {
+  const icon  = WEATHER_ICONS[w.icon] || '🌡️';
+  const badge = w.mock
+    ? `<span class="badge badge-mock">⚙️ Demo — paste real key in config.py</span>`
+    : `<span class="badge badge-live">🟢 Live Weather</span>`;
+  document.getElementById('weatherCard').innerHTML = `
+    <div class="weather-icon">${icon}</div>
+    <div class="weather-main">
+      <div class="weather-city-row">📍 ${w.city} ${badge}</div>
+      <div class="weather-temp">${w.temp}°C
+        <span style="font-size:1rem;color:var(--subtle);font-weight:300"> Feels like ${w.feels_like}°C</span>
+      </div>
+      <div class="weather-desc">${w.description}</div>
+    </div>
+    <div class="weather-details">
+      <div class="weather-detail">💧 Humidity<br><strong>${w.humidity}%</strong></div>
+      <div class="weather-detail">💨 Wind<br><strong>${w.wind} km/h</strong></div>
+    </div>`;
+}
+
+function renderWeatherError(msg) {
+  document.getElementById('weatherCard').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;width:100%">
+      <span style="font-size:1.8rem">⚠️</span>
+      <div>
+        <div style="font-weight:500;color:var(--ink);margin-bottom:3px">Weather Unavailable</div>
+        <div style="font-size:0.82rem;color:var(--subtle)">${msg}</div>
+        <div style="font-size:0.78rem;color:#c9a84c;margin-top:4px">
+          Tip: New OpenWeatherMap keys take ~10 min to activate after signup.
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   DAY CARDS
+══════════════════════════════════════════════════════════════════════ */
+function toggleDay(header) {
+  const body = header.nextElementSibling;
+  header.classList.toggle('open');
+  body.style.display = header.classList.contains('open') ? 'block' : 'none';
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   PDF EXPORT
+══════════════════════════════════════════════════════════════════════ */
+function openEmailModal() {
+  document.getElementById('emailModal').classList.add('open');
+  document.getElementById('emailInput').focus();
+  document.getElementById('emailStatus').className = 'modal-status';
+  document.getElementById('emailInput').value = '';
+}
+
+function closeEmailModal() {
+  document.getElementById('emailModal').classList.remove('open');
+}
+
+// Close modal on overlay click
+document.getElementById('emailModal').addEventListener('click', function(e) {
+  if (e.target === this) closeEmailModal();
+});
+
+async function sendEmail() {
+  const email = document.getElementById('emailInput').value.trim();
+  const statusEl = document.getElementById('emailStatus');
+  const btn = document.getElementById('sendEmailBtn');
+
+  if (!email || !email.includes('@')) {
+    statusEl.className = 'modal-status error';
+    statusEl.textContent = 'Please enter a valid email address.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  statusEl.className = 'modal-status';
+
+  try {
+    const res = await fetch('/api/send_itinerary_email', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        email:     email,
+        itinerary: itin
+      })
+    });
+    const data = await res.json();
+
+    if (data.status === 'success') {
+      statusEl.className = 'modal-status success';
+      statusEl.textContent = '✅ ' + data.message;
+      btn.textContent = 'Sent! ✅';
+      setTimeout(() => closeEmailModal(), 2500);
+    } else {
+      statusEl.className = 'modal-status error';
+      statusEl.textContent = '❌ ' + data.message;
+      btn.disabled = false;
+      btn.textContent = 'Send Itinerary ✈️';
+    }
+  } catch(err) {
+    statusEl.className = 'modal-status error';
+    statusEl.textContent = '❌ Connection error. Please try again.';
+    btn.disabled = false;
+    btn.textContent = 'Send Itinerary ✈️';
+  }
+}
+
+function toggleNav() {
+  document.getElementById('navMenu').classList.toggle('open');
+}
+// Show hamburger on mobile
+if (window.innerWidth <= 768) {
+  document.getElementById('hamburger').style.display = 'flex';
+}
+
+function exportPDF() {
+  document.querySelectorAll('.day-body').forEach(b => b.style.display = 'block');
+  document.querySelectorAll('.day-header').forEach(h => h.classList.add('open'));
+  const itin  = JSON.parse(sessionStorage.getItem('itinerary'));
+  const title = `TravelWise_${itin.destination.replace(/\s+/g,'_')}_Itinerary`;
+  const styles = `<style>
+    body{font-family:Arial,sans-serif;max-width:800px;margin:0 auto;padding:30px;color:#0d1117}
+    h1{font-size:2rem;color:#1a6b6b;margin-bottom:4px}
+    .meta{color:#718096;margin-bottom:16px;font-size:0.95rem}
+    .chips{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap}
+    .chip{background:#e2f4f4;color:#1a6b6b;padding:4px 12px;border-radius:20px;font-size:0.8rem}
+    h2{font-size:1rem;background:#0d1117;color:#fff;padding:10px 16px;margin:16px 0 0;border-radius:4px 4px 0 0}
+    table{width:100%;border-collapse:collapse}
+    td{padding:9px 14px;border-bottom:1px solid #f0f0f0;font-size:0.88rem}
+    td:first-child{color:#718096;white-space:nowrap;width:90px;font-size:0.78rem}
+    .type{display:inline-block;font-size:0.68rem;text-transform:uppercase;padding:2px 6px;border-radius:10px;margin-left:6px;background:#ebf8ff;color:#2b6cb0}
+    .footer{margin-top:40px;text-align:center;color:#a0aec0;font-size:0.8rem;border-top:1px solid #e2e8f0;padding-top:16px}
+    @media print{@page{margin:2cm}}
+  </style>`;
+  let body = `<h1>📍 ${itin.destination}</h1>
+    <div class="meta">${itin.num_days}-Day ${itin.trip_type} Trip · Generated by TravelWise AI</div>
+    <div class="chips">
+      <span class="chip">📅 ${itin.num_days} Days</span>
+      <span class="chip">👤 ${itin.trip_type}</span>
+      <span class="chip">🤖 AI Generated</span>
+      <span class="chip">📅 ${new Date().toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</span>
+    </div>`;
+  itin.days.forEach(day => {
+    body += `<h2>${day.title}</h2><table>`;
+    day.schedule.forEach(item => {
+      const pdfMapUrl = (item.type === 'sightseeing' || item.type === 'activity')
+        ? `https://www.google.com/maps/search/${encodeURIComponent(item.activity)}+${encodeURIComponent(itin.destination)}`
+        : (item.type === 'food' ? `https://www.google.com/maps/search/restaurants+near+${encodeURIComponent(itin.destination)}` : '');
+      body += `<tr><td style='white-space:nowrap'>${item.time}</td><td>${item.activity}<span class="type">${item.type}</span>${pdfMapUrl ? `<br><a href="${pdfMapUrl}" style="font-size:11px;color:#1a73e8">📍 View on Map</a>` : ''}</td></tr>`;
+    });
+    body += `</table>`;
+  });
+  body += `<div class="footer">Generated by TravelWise AI Travel Planner · ${new Date().toLocaleString('en-IN')}</div>`;
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head><title>${title}</title>${styles}</head><body>${body}</body></html>`);
+  win.document.close(); win.focus();
+  setTimeout(() => win.print(), 500);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   REVIEWS
+══════════════════════════════════════════════════════════════════════ */
+function toggleReviewForm() { document.getElementById('reviewForm').classList.toggle('show'); }
+function hoverRating(v) { document.querySelectorAll('.star').forEach(s => s.classList.toggle('active', parseInt(s.dataset.v) <= v)); }
+function resetHover()   { document.querySelectorAll('.star').forEach(s => s.classList.toggle('active', parseInt(s.dataset.v) <= selectedRating)); }
+function setRating(v)   { selectedRating = v; resetHover(); }
+
+async function submitReview() {
+  const text = document.getElementById('reviewText').value.trim();
+  const sr   = document.getElementById('sentimentResult');
+  if (!text)           { alert('Please write your review first.'); return; }
+  if (!selectedRating) { alert('Please select a star rating.'); return; }
+  const res  = await fetch('/api/reviews', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({destination: DESTINATION, review_text: text, rating: selectedRating})
+  });
+  const data = await res.json();
+  if (data.status === 'success') {
+    const label = data.sentiment.label;
+    sr.className = `sentiment-result ${label}`;
+    const icons = {Positive:'😊 ', Negative:'😞 ', Neutral:'😐 '};
+    sr.textContent = `${icons[label]}NLP Sentiment: Your review is ${label}`;
+    sr.style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('reviewText').value = '';
+      selectedRating = 0; resetHover();
+      sr.style.display = 'none';
+      document.getElementById('reviewForm').classList.remove('show');
+      loadReviews(DESTINATION);
+    }, 2000);
+  }
+}
+
+async function loadReviews(destination) {
+  const el = document.getElementById('reviewsList');
+  if (!el) return;
+  const res  = await fetch(`/api/reviews/${encodeURIComponent(destination)}`);
+  const data = await res.json();
+  if (data.status !== 'success') { el.innerHTML = '<p style="color:var(--subtle);padding:20px">Could not load reviews.</p>'; return; }
+  const { reviews, summary, current_user_id } = data;
+  const stars = n => '★'.repeat(Math.round(n)) + '☆'.repeat(5 - Math.round(n));
+
+  if (reviews.length === 0) {
+    el.innerHTML = `<div class="empty-reviews">
+      <div style="font-size:2.5rem;margin-bottom:12px">✍️</div>
+      <p>No reviews yet for <strong>${destination}</strong>. Be the first!</p>
+    </div>`; return;
+  }
+
+  const s   = summary;
+  const tot = s.total;
+
+  // Overall sentiment icons
+  const overallIcons = {Positive:'😊', Negative:'😞', Neutral:'😐'};
+  const overallMsg   = {
+    Positive: `Travellers love ${destination}!`,
+    Negative: `Travellers found ${destination} disappointing.`,
+    Neutral:  `Travellers have mixed feelings about ${destination}.`,
+  };
+
+  let html = `
+    <!-- OVERALL SENTIMENT BANNER -->
+    <div class="overall-sentiment ${s.overall_sentiment}">
+      <div class="overall-icon">${overallIcons[s.overall_sentiment]}</div>
+      <div>
+        <div class="overall-label ${s.overall_sentiment}">Overall: ${s.overall_sentiment} Sentiment</div>
+        <div class="overall-sub">${overallMsg[s.overall_sentiment]} Based on ${tot} review${tot!==1?'s':''}.</div>
+      </div>
+      <div class="overall-breakdown">
+        <span class="breakdown-pill pill-pos">😊 ${s.positive_count} Positive</span>
+        <span class="breakdown-pill pill-neu">😐 ${s.neutral_count} Neutral</span>
+        <span class="breakdown-pill pill-neg">😞 ${s.negative_count} Negative</span>
+      </div>
+    </div>
+
+    <!-- RATING SUMMARY -->
+    <div class="review-summary">
+      <div>
+        <div class="review-big-rating">${s.avg_rating}<span> / 5</span></div>
+        <div style="color:var(--gold);font-size:1.3rem;margin:4px 0;letter-spacing:3px">${stars(s.avg_rating)}</div>
+        <div style="font-size:0.8rem;color:var(--subtle)">${tot} review${tot!==1?'s':''}</div>
+      </div>
+      <div class="review-bars">
+        <div class="review-bar-row"><span class="bar-label">Positive</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${s.positive_pct}%;background:#22c55e"></div></div>
+          <span style="font-size:0.8rem;color:var(--subtle)">${s.positive_count}</span></div>
+        <div class="review-bar-row"><span class="bar-label">Neutral</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${s.neutral_pct}%;background:#94a3b8"></div></div>
+          <span style="font-size:0.8rem;color:var(--subtle)">${s.neutral_count}</span></div>
+        <div class="review-bar-row"><span class="bar-label">Negative</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${s.negative_pct}%;background:#ef4444"></div></div>
+          <span style="font-size:0.8rem;color:var(--subtle)">${s.negative_count}</span></div>
+      </div>
+    </div>`;
+
+  // Individual review cards
+  reviews.forEach(r => {
+    const d       = new Date(r.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+    const isOwner = r.user_id === current_user_id;
+    html += `
+      <div class="review-card ${r.sentiment}" id="review-${r.id}">
+        <div class="review-top">
+          <span class="reviewer-name">👤 ${r.username}</span>
+          <span class="review-stars">${stars(r.rating)}</span>
+          ${isOwner ? `<button class="btn-delete-review" onclick="deleteReview(${r.id})" title="Delete your review">🗑️ Delete</button>` : ''}
+        </div>
+        <div class="review-text">${r.review_text}</div>
+        <div class="review-meta">
+          <span>📅 ${d}</span>
+          <span class="review-sentiment-badge badge-${r.sentiment}">${r.sentiment}</span>
+        </div>
+      </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+async function deleteReview(reviewId) {
+  if (!confirm('Delete your review?')) return;
+  const card = document.getElementById(`review-${reviewId}`);
+  if (card) { card.style.opacity = '0.4'; card.style.pointerEvents = 'none'; }
+
+  const res  = await fetch(`/api/reviews/${reviewId}`, { method: 'DELETE' });
+  const data = await res.json();
+
+  if (data.status === 'success') {
+    if (card) {
+      card.style.transition = 'all .3s';
+      card.style.transform  = 'scale(0.95)';
+      card.style.opacity    = '0';
+      setTimeout(() => { loadReviews(DESTINATION); }, 350);
+    }
+  } else {
+    if (card) { card.style.opacity = '1'; card.style.pointerEvents = 'auto'; }
+    alert('Could not delete review. Please try again.');
+  }
+}
+</script>
+<!-- Email Modal -->
+<div class="modal-overlay" id="emailModal">
+  <div class="modal-box">
+    <h3>📧 Email Itinerary</h3>
+    <p>We'll send your complete day-wise itinerary to your email address.</p>
+    <input type="email" class="modal-input" id="emailInput" placeholder="Enter your email address" />
+    <div class="modal-actions">
+      <button class="btn-modal-cancel" onclick="closeEmailModal()">Cancel</button>
+      <button class="btn-modal-send" id="sendEmailBtn" onclick="sendEmail()">Send Itinerary ✈️</button>
+    </div>
+    <div class="modal-status" id="emailStatus"></div>
+  </div>
+</div>
+
+</body>
+</html>

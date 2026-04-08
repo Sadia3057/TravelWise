@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>My Dashboard — TravelWise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#0d1117;--sand:#f5efe6;--gold:#c9a84c;--teal:#1a6b6b;--teal-light:#2a9b9b;--subtle:#718096;--card:#fff}
+body{font-family:'DM Sans',sans-serif;background:#f0f4f8;min-height:100vh}
+
+/* ── NAV ── */
+nav{background:var(--ink);padding:16px 40px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100}
+.logo{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.4rem;letter-spacing:2px;text-decoration:none}
+.nav-right{display:flex;gap:8px;align-items:center}
+.nav-right a{color:rgba(255,255,255,0.65);text-decoration:none;font-size:0.88rem;padding:7px 16px;border-radius:6px;transition:all .2s}
+.nav-right a:hover{color:#fff;background:rgba(255,255,255,0.08)}
+.nav-right a.active{color:#fff;background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.3)}
+.nav-right a.btn-new{background:var(--gold);color:var(--ink);font-weight:500;border:none}
+.nav-right a.btn-new:hover{background:#e8c96d;color:var(--ink)}
+
+/* ── LAYOUT ── */
+.page{max-width:1200px;margin:0 auto;padding:32px 24px}
+
+/* ── WELCOME BANNER ── */
+.welcome-banner{
+  background:linear-gradient(135deg,#0d3d3d 0%,var(--teal) 50%,#1a4a2e 100%);
+  border-radius:16px;padding:36px 40px;margin-bottom:28px;
+  display:flex;justify-content:space-between;align-items:center;
+  position:relative;overflow:hidden;
+}
+.welcome-banner::before{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:280px;height:280px;border-radius:50%;
+  background:rgba(201,168,76,0.08);
+}
+.welcome-banner::after{
+  content:'';position:absolute;bottom:-40px;right:200px;
+  width:160px;height:160px;border-radius:50%;
+  background:rgba(255,255,255,0.04);
+}
+.welcome-text{position:relative;z-index:1}
+.welcome-text h1{font-family:'Playfair Display',serif;font-size:1.9rem;color:#fff;margin-bottom:6px}
+.welcome-text p{color:rgba(255,255,255,0.65);font-size:0.92rem}
+.banner-actions{display:flex;gap:10px;position:relative;z-index:1}
+.btn-primary{background:var(--gold);color:var(--ink);padding:11px 24px;border-radius:8px;
+  text-decoration:none;font-weight:500;font-size:0.88rem;transition:all .2s;white-space:nowrap;border:none;cursor:pointer}
+.btn-primary:hover{background:#e8c96d;transform:translateY(-1px);box-shadow:0 4px 16px rgba(201,168,76,0.3)}
+.btn-secondary{background:rgba(255,255,255,0.12);color:#fff;padding:11px 24px;border-radius:8px;
+  text-decoration:none;font-size:0.88rem;transition:all .2s;white-space:nowrap;border:1px solid rgba(255,255,255,0.2)}
+.btn-secondary:hover{background:rgba(255,255,255,0.2)}
+
+/* ── STATS ROW ── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--card);border-radius:12px;padding:20px 24px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);display:flex;align-items:center;gap:16px}
+.stat-icon{width:46px;height:46px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:1.3rem;flex-shrink:0}
+.stat-icon.teal{background:rgba(26,107,107,0.1)}
+.stat-icon.gold{background:rgba(201,168,76,0.12)}
+.stat-icon.blue{background:rgba(59,130,246,0.1)}
+.stat-icon.purple{background:rgba(139,92,246,0.1)}
+.stat-info .num{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--ink);line-height:1}
+.stat-info .lbl{color:var(--subtle);font-size:0.78rem;margin-top:3px}
+
+/* ── SECTION HEADER ── */
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.section-header h2{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--ink)}
+.section-header a{font-size:0.85rem;color:var(--teal);text-decoration:none}
+.section-header a:hover{text-decoration:underline}
+
+/* ── TRIP CARDS ── */
+.trips-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:32px}
+.trip-card{background:var(--card);border-radius:12px;overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06);transition:all .25s;position:relative}
+.trip-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,0.1)}
+.trip-card-top{padding:18px 20px 14px;border-bottom:1px solid #f1f5f9}
+.trip-dest{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--ink);margin-bottom:4px;
+  display:flex;align-items:center;gap:8px}
+.trip-dest-pin{color:var(--teal);font-size:1rem}
+.trip-from{font-size:0.8rem;color:var(--subtle);margin-bottom:10px}
+.trip-badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;
+  font-size:0.72rem;font-weight:500;letter-spacing:.3px}
+.badge-solo{background:#e0f2f1;color:#00695c}
+.badge-family{background:#fff3e0;color:#e65100}
+.badge-friends{background:#f3e5f5;color:#6a1b9a}
+.badge-season{background:#f0f9ff;color:#0369a1}
+.badge-transport{background:#f0fdf4;color:#166534}
+.trip-card-bottom{padding:12px 20px;display:flex;justify-content:space-between;align-items:center}
+.trip-budget-label{font-size:0.78rem;color:var(--subtle)}
+.trip-budget-val{font-size:1rem;color:var(--teal);font-weight:600;font-family:'Playfair Display',serif}
+.trip-date{font-size:0.75rem;color:#cbd5e1}
+.btn-delete{position:absolute;top:12px;right:12px;background:none;
+  border:1px solid #fecaca;color:#f87171;border-radius:6px;padding:3px 10px;
+  font-size:0.72rem;cursor:pointer;opacity:0;transition:all .2s;font-family:'DM Sans',sans-serif}
+.trip-card:hover .btn-delete{opacity:1}
+.btn-delete:hover{background:#fee2e2;color:#dc2626}
+@media(max-width:768px){.btn-delete{opacity:1}}
+
+/* ── EMPTY STATE ── */
+.empty-state{background:var(--card);border-radius:12px;padding:60px 40px;
+  text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.empty-icon{font-size:3.5rem;margin-bottom:16px}
+.empty-state h3{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--ink);margin-bottom:8px}
+.empty-state p{color:var(--subtle);margin-bottom:24px;font-size:0.92rem}
+
+/* ── QUICK LINKS ── */
+.quick-links{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
+.quick-card{background:var(--card);border-radius:12px;padding:20px;display:flex;align-items:center;
+  gap:14px;text-decoration:none;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.06);
+  transition:all .2s;border:1.5px solid transparent}
+.quick-card:hover{border-color:var(--teal);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.09)}
+.quick-card-icon{width:44px;height:44px;border-radius:10px;background:rgba(26,107,107,0.08);
+  display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.quick-card-text strong{display:block;font-size:0.92rem;font-weight:500;color:var(--ink)}
+.quick-card-text span{font-size:0.78rem;color:var(--subtle)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:#fff;padding:12px 24px;border-radius:8px;
+  font-size:0.88rem;z-index:999;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.25)}
+.toast.show{display:block;animation:slideUp .3s ease}
+@keyframes slideUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ── MOBILE ── */
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+.hamburger span{width:22px;height:2px;background:#fff;border-radius:2px}
+.nav-mob-menu{display:none;position:absolute;top:60px;left:0;right:0;background:var(--ink);
+  flex-direction:column;padding:12px;gap:4px;z-index:999;border-top:1px solid rgba(255,255,255,0.08)}
+.nav-mob-menu.open{display:flex}
+.nav-mob-menu a{color:rgba(255,255,255,0.8);text-decoration:none;font-size:0.92rem;padding:11px 16px;border-radius:6px}
+.nav-mob-menu a:hover{background:rgba(255,255,255,0.07);color:#fff}
+.nav-mob-menu a.active{color:var(--gold)}
+
+@media(max-width:900px){
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .quick-links{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+  nav{padding:12px 16px;position:relative}
+  .nav-right{display:none}
+  .hamburger{display:flex}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .page{padding:16px}
+  .welcome-banner{flex-direction:column;align-items:flex-start;gap:16px;padding:24px 20px}
+  .banner-actions{width:100%}
+  .banner-actions a,.banner-actions button{flex:1;text-align:center}
+  .trips-grid{grid-template-columns:1fr}
+  .quick-links{grid-template-columns:1fr}
+}
+@media(max-width:480px){
+  .stats-row{grid-template-columns:1fr}
+  .welcome-text h1{font-size:1.5rem}
+}
+@media(min-width:769px){
+  .hamburger{display:none !important}
+  .nav-mob-menu{display:none !important}
+  .nav-right{display:flex !important}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">TravelWise</a>
+  <button class="hamburger" id="dashHamburger" onclick="toggleDashNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-right">
+    <a href="/dashboard" class="active">Dashboard</a>
+    <a href="/planner">Plan Trip</a>
+    <a href="/chatbot">AI Chatbot</a>
+    <a href="/logout">Logout</a>
+    <a href="/planner" class="btn-new">+ New Trip</a>
+  </div>
+  <div class="nav-mob-menu" id="dashNavMenu">
+    <a href="/dashboard" class="active">Dashboard</a>
+    <a href="/planner">Plan Trip</a>
+    <a href="/chatbot">AI Chatbot</a>
+    <a href="/logout">Logout</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- WELCOME BANNER -->
+  <div class="welcome-banner">
+    <div class="welcome-text">
+      <h1>Welcome back, {{ current_user.username }}! 🌍</h1>
+      <p>Where are you headed next? Let's plan your perfect trip.</p>
+    </div>
+    <div class="banner-actions">
+      <a href="/planner" class="btn-primary">+ Plan New Trip</a>
+      <a href="/chatbot" class="btn-secondary">💬 Ask AI Assistant</a>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon teal">🗺️</div>
+      <div class="stat-info">
+        <div class="num">{{ trips|length }}</div>
+        <div class="lbl">Trips Planned</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon gold">🎒</div>
+      <div class="stat-info">
+        <div class="num">{{ trips|selectattr('trip_type','eq','Solo')|list|length }}</div>
+        <div class="lbl">Solo Trips</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue">👨‍👩‍👧</div>
+      <div class="stat-info">
+        <div class="num">{{ trips|selectattr('trip_type','eq','Family')|list|length }}</div>
+        <div class="lbl">Family Trips</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon purple">💰</div>
+      <div class="stat-info">
+        <div class="num">₹{{ "{:,.0f}".format((trips|sum(attribute='budget'))|int / 1000) }}K</div>
+        <div class="lbl">Total Budget</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="section-header">
+    <h2>Quick Actions</h2>
+  </div>
+  <div class="quick-links">
+    <a href="/planner" class="quick-card">
+      <div class="quick-card-icon">🔍</div>
+      <div class="quick-card-text">
+        <strong>Find Destinations</strong>
+        <span>Browse 370+ places across India</span>
+      </div>
+    </a>
+    <a href="/chatbot" class="quick-card">
+      <div class="quick-card-icon">💬</div>
+      <div class="quick-card-text">
+        <strong>Ask AI Assistant</strong>
+        <span>Get travel advice & tips instantly</span>
+      </div>
+    </a>
+    <a href="/planner" class="quick-card">
+      <div class="quick-card-icon">📋</div>
+      <div class="quick-card-text">
+        <strong>Build Itinerary</strong>
+        <span>Auto-generate your day-wise plan</span>
+      </div>
+    </a>
+  </div>
+
+  <!-- TRIPS -->
+  <div class="section-header">
+    <h2>Your Trips</h2>
+    {% if trips %}
+    <a href="/planner">+ Plan another</a>
+    {% endif %}
+  </div>
+
+  {% if trips %}
+  <div class="trips-grid">
+    {% for trip in trips %}
+    <div class="trip-card">
+      <button class="btn-delete" onclick="deleteTrip(event, {{ trip.id }}, this)">✕ Remove</button>
+      <div class="trip-card-top">
+        <div class="trip-dest">
+          <span class="trip-dest-pin">📍</span>
+          {{ trip.destination or 'Destination TBD' }}
+        </div>
+        <div class="trip-from">
+          {% if trip.from_location %}From {{ trip.from_location }}{% endif %}
+        </div>
+        <div class="trip-badges">
+          <span class="badge badge-{{ trip.trip_type.lower() }}">{{ trip.trip_type }}</span>
+          <span class="badge badge-season">{{ trip.season }}</span>
+          <span class="badge badge-transport">{{ trip.transport }}</span>
+        </div>
+      </div>
+      <div class="trip-card-bottom">
+        <div>
+          <div class="trip-budget-label">{{ trip.num_days }}-day trip · Budget</div>
+          <div class="trip-budget-val">₹{{ "{:,}".format(trip.budget|int) }}</div>
+        </div>
+        <div class="trip-date">{{ trip.created_at }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">🗺️</div>
+    <h3>No trips planned yet</h3>
+    <p>Start exploring India — plan your first trip and we'll save it here for you.</p>
+    <a href="/planner" class="btn-primary" style="display:inline-block">Explore Destinations →</a>
+  </div>
+  {% endif %}
+
+</div>
+
+<div class="toast" id="toast">
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+function toggleDashNav() {
+  document.getElementById('dashNavMenu').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('dashNavMenu');
+  if (menu && menu.classList.contains('open') &&
+      !menu.contains(e.target) && !e.target.closest('#dashHamburger')) {
+    menu.classList.remove('open');
+  }
+});
+
+async function deleteTrip(e, tripId, btn) {
+  e.stopPropagation();
+  if (!confirm('Remove this trip from your history?')) return;
+  const card = btn.closest('.trip-card');
+  card.style.opacity = '0.5';
+  const res  = await fetch(`/api/delete_trip/${tripId}`, {method:'DELETE'});
+  const data = await res.json();
+  if (data.status === 'success') {
+    card.style.transition = 'all .3s';
+    card.style.transform  = 'scale(0.95)';
+    card.style.opacity    = '0';
+    setTimeout(() => {
+      card.remove();
+      showToast('Trip removed');
+      const remaining = document.querySelectorAll('.trip-card').length;
+      document.querySelector('.stat-card .num').textContent = remaining;
+    }, 300);
+  } else {
+    card.style.opacity = '1';
+    alert('Could not remove trip. Please try again.');
+  }
+}
+
+function showToast(msg) {
+  document.getElementById('toastMsg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

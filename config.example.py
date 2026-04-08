@@ -1,0 +1,5 @@
+OPENWEATHER_API_KEY = "get_from_openweathermap.org"
+NVIDIA_API_KEY      = "get_from_build.nvidia.com"
+SMTP_EMAIL          = "your_gmail@gmail.com"
+SMTP_PASSWORD       = "your_gmail_app_password"
+SECRET_KEY          = "choose_any_random_string"

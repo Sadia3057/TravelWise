@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Your Trip — TravelWise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--ink:#0d1117;--sand:#f5efe6;--gold:#c9a84c;--teal:#1a6b6b;--teal-light:#2a9b9b;--subtle:#718096;--card:#fff}
+body{font-family:'DM Sans',sans-serif;background:var(--sand);min-height:100vh}
+
+nav{background:var(--ink);padding:16px 40px;display:flex;justify-content:space-between;align-items:center}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+.hamburger span{width:22px;height:2px;background:#fff;border-radius:2px;transition:all .3s}
+.nav-menu{display:flex;gap:24px;align-items:center}
+.nav-menu a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;transition:color .2s}
+.nav-menu a:hover{color:#fff}
+.nav-menu a.active{color:var(--gold)}
+.logo{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.4rem;letter-spacing:2px;text-decoration:none}
+.nav-right{display:flex;gap:24px;align-items:center}
+.nav-right a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:0.9rem;transition:color .2s}
+.nav-right a:hover{color:#fff}
+.nav-right a.active{color:var(--gold)}
+
+.container{max-width:1400px;margin:0 auto;padding:40px}
+.page-header{margin-bottom:28px}
+.page-header h1{font-family:'Playfair Display',serif;font-size:2.2rem;color:var(--ink);margin-bottom:6px}
+.page-header p{color:var(--subtle)}
+
+.planner-grid{display:grid;grid-template-columns:400px 1fr;gap:32px;align-items:start}
+
+/* FORM CARD */
+.form-card{background:var(--card);border-radius:8px;padding:28px;box-shadow:0 4px 20px rgba(0,0,0,0.08);position:sticky;top:20px}
+.form-card h2{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--ink);margin-bottom:20px;padding-bottom:10px;border-bottom:2px solid var(--gold)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{margin-bottom:14px}
+label{display:block;font-size:0.75rem;font-weight:500;color:var(--ink);margin-bottom:5px;letter-spacing:0.5px;text-transform:uppercase}
+input,select{width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--ink);background:#fff;outline:none;transition:border-color .2s}
+input:focus,select:focus{border-color:var(--teal)}
+
+/* ROUTE ROW — From ➜ To */
+.route-row{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end;margin-bottom:14px}
+.route-arrow{display:flex;align-items:center;justify-content:center;padding-bottom:10px;color:var(--teal);font-size:1.2rem;font-weight:700}
+
+/* SECTION DIVIDER */
+.form-divider{font-size:0.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--subtle);margin:16px 0 12px;padding-top:14px;border-top:1px solid #e2e8f0}
+
+/* INTEREST CHIPS */
+.interest-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.interest-chip{
+  display:flex;align-items:center;gap:5px;
+  padding:7px 12px;border-radius:20px;cursor:pointer;
+  border:1.5px solid #e2e8f0;background:#fff;
+  font-size:0.8rem;color:var(--subtle);
+  transition:all .2s;user-select:none;font-family:'DM Sans',sans-serif;
+}
+.interest-chip:hover{border-color:var(--teal);color:var(--teal)}
+.interest-chip.selected{background:var(--teal);border-color:var(--teal);color:#fff}
+.interest-chip .chip-icon{font-size:1rem}
+.selected-count{font-size:0.75rem;color:var(--teal);margin-top:6px;display:none}
+.people-selector{display:none;margin-bottom:14px;padding:12px 14px;background:rgba(26,107,107,0.06);border:1.5px solid rgba(26,107,107,0.2);border-radius:6px}
+.people-selector.show{display:block}
+.people-selector label{color:var(--teal);font-size:0.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.people-count-row{display:flex;align-items:center;gap:12px;margin-top:8px}
+.people-btn{width:32px;height:32px;border-radius:50%;border:1.5px solid var(--teal);background:#fff;color:var(--teal);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;font-weight:600}
+.people-btn:hover{background:var(--teal);color:#fff}
+.people-num{font-size:1.2rem;font-weight:700;color:var(--ink);min-width:28px;text-align:center}
+.people-label{font-size:0.82rem;color:var(--subtle)}
+.selected-count.show{display:block}
+
+.range-val{font-size:0.85rem;color:var(--teal);font-weight:500;float:right}
+.btn-plan{width:100%;padding:14px;background:linear-gradient(135deg,var(--teal),var(--teal-light));color:#fff;border:none;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:500;letter-spacing:.5px;transition:all .3s;margin-top:10px}
+.btn-plan:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(26,107,107,0.3)}
+.btn-plan:disabled{opacity:.7;transform:none;cursor:not-allowed}
+
+/* RESULTS */
+.results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.results-header h2{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--ink)}
+.results-count{color:var(--subtle);font-size:0.9rem}
+.filter-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.filter-pill{background:rgba(26,107,107,0.1);color:var(--teal);font-size:0.75rem;padding:4px 10px;border-radius:20px;border:1px solid rgba(26,107,107,0.2)}
+
+.rec-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.rec-card{background:var(--card);border-radius:8px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.07);transition:all .3s;cursor:pointer;border:2px solid transparent}
+.rec-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.12)}
+.rec-card.feasible{border-color:rgba(26,107,107,0.25)}
+.rec-card-header{padding:20px;background:linear-gradient(135deg,var(--teal),#0d3d3d);color:#fff;position:relative}
+.dest-emoji{font-size:2.2rem;margin-bottom:8px;display:block}
+.dest-name{font-family:'Playfair Display',serif;font-size:1.25rem}
+.dest-meta{font-size:0.75rem;opacity:.7;margin-top:2px}
+.feasibility-badge{position:absolute;top:12px;right:12px;padding:4px 10px;border-radius:20px;font-size:0.7rem;letter-spacing:1px;font-weight:500}
+.feasibility-badge.yes{background:rgba(72,187,120,.2);color:#48bb78;border:1px solid rgba(72,187,120,.3)}
+.feasibility-badge.no{background:rgba(229,62,62,.15);color:#fc8181;border:1px solid rgba(229,62,62,.2)}
+.rec-card-body{padding:18px}
+.score-bar{background:#e2e8f0;border-radius:2px;height:4px;margin-bottom:14px}
+.score-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--teal),var(--gold));transition:width 1s ease}
+.cost-row{display:flex;justify-content:space-between;margin-bottom:10px;font-size:0.85rem}
+.cost-label{color:var(--subtle)}
+.cost-val{color:var(--ink);font-weight:500}
+.cost-val.primary{color:var(--teal)}
+.sentiment-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.sentiment-badge{font-size:0.72rem;padding:3px 8px;border-radius:20px;font-weight:500}
+.sentiment-badge.Positive{background:#f0fdf4;color:#16a34a}
+.sentiment-badge.Negative{background:#fef2f2;color:#dc2626}
+.sentiment-badge.Neutral{background:#f8f9fa;color:#6c757d}
+.sentiment-badge.No\ Reviews{background:#f1f5f9;color:#94a3b8}
+.sentiment-badge.no-reviews{background:#f1f5f9;color:#94a3b8}
+.interests-matched{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+.int-tag{background:rgba(201,168,76,0.12);color:#92700a;font-size:0.7rem;padding:3px 8px;border-radius:20px;border:1px solid rgba(201,168,76,0.25)}
+.highlights{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px}
+.hl-tag{background:var(--sand);color:var(--teal);font-size:0.72rem;padding:3px 8px;border-radius:20px}
+.card-actions{display:flex;gap:8px}
+.btn-itinerary{flex:1;padding:9px;background:var(--ink);color:#fff;border:none;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:0.83rem;transition:background .2s}
+.btn-itinerary:hover{background:var(--teal)}
+
+.empty-state{text-align:center;padding:70px 40px;color:var(--subtle)}
+.empty-state .emoji{font-size:3.5rem;margin-bottom:14px}
+.empty-state h3{font-family:'Playfair Display',serif;color:var(--ink);margin-bottom:8px}
+.no-results-msg{background:#fff;border-radius:8px;padding:40px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,0.07)}
+.no-results-msg h3{font-family:'Playfair Display',serif;color:var(--ink);margin-bottom:8px}
+.no-results-msg p{color:var(--subtle);font-size:0.9rem}
+
+.loading{display:none;text-align:center;padding:60px;color:var(--subtle)}
+.spinner{width:44px;height:44px;border:3px solid #e2e8f0;border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* CHATBOT */
+.chatbot-fab{position:fixed;bottom:30px;right:30px;width:54px;height:54px;background:linear-gradient(135deg,var(--teal),var(--teal-light));border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 24px rgba(26,107,107,0.4);z-index:1000;font-size:1.3rem;transition:transform .2s}
+.chatbot-fab:hover{transform:scale(1.1)}
+.chatbot-panel{position:fixed;bottom:96px;right:30px;width:340px;background:#fff;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.15);z-index:1000;display:none;flex-direction:column;max-height:460px}
+.chatbot-panel.open{display:flex}
+.chat-header{padding:14px 18px;background:linear-gradient(135deg,var(--teal),var(--teal-light));border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center}
+.chat-header h4{color:#fff;font-size:0.9rem}
+.chat-close{background:none;border:none;color:#fff;cursor:pointer;font-size:1.1rem}
+.chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.chat-msg{max-width:82%;padding:9px 13px;border-radius:12px;font-size:0.85rem;line-height:1.5}
+.chat-msg.bot{background:var(--sand);color:var(--ink);align-self:flex-start;border-radius:4px 12px 12px 12px}
+.chat-msg.user{background:var(--teal);color:#fff;align-self:flex-end;border-radius:12px 4px 12px 12px}
+.chat-input-row{padding:10px;border-top:1px solid #e2e8f0;display:flex;gap:8px}
+.chat-input-row input{flex:1;border:1.5px solid #e2e8f0;padding:8px 12px;border-radius:20px;font-size:0.85rem;outline:none}
+.chat-input-row input:focus{border-color:var(--teal)}
+.chat-send{background:var(--teal);color:#fff;border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:.9rem;transition:background .2s}
+.chat-send:hover{background:var(--teal-light)}
+
+/* ── MOBILE RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  nav{padding:12px 16px}
+  .nav-right a{margin-left:12px;font-size:0.82rem}
+  .container{padding:16px}
+  .page-header h1{font-size:1.5rem}
+  .planner-grid{grid-template-columns:1fr;gap:20px}
+  .form-card{position:static}
+  .route-row{grid-template-columns:1fr auto 1fr;gap:6px}
+  .form-row{grid-template-columns:1fr 1fr;gap:10px}
+  .rec-grid{grid-template-columns:1fr}
+  .chatbot-panel{width:calc(100vw - 32px);right:16px}
+  .chatbot-fab{bottom:16px;right:16px}
+  .results-header{flex-direction:column;align-items:flex-start;gap:6px}
+  .people-selector{padding:10px 12px}
+}
+@media (max-width: 768px) {
+  .hamburger{display:flex}
+  .nav-menu{display:none;position:absolute;top:56px;left:0;right:0;background:var(--ink);
+    flex-direction:column;padding:16px;gap:0;z-index:999;border-top:1px solid rgba(255,255,255,0.1)}
+  .nav-menu.open{display:flex}
+  .nav-menu a{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.07);font-size:0.95rem}
+  nav{position:relative}
+}
+@media (max-width: 480px) {
+  .nav-right a:not(.active){display:none}
+  .nav-right a.active{display:inline}
+  .nav-right{gap:8px}
+  .form-row{grid-template-columns:1fr}
+  .route-row{grid-template-columns:1fr}
+  .route-arrow{display:none}
+  .rec-card-header{padding:16px}
+  .rec-card-body{padding:14px}
+  .card-actions{flex-direction:column}
+  .interest-chip{font-size:0.75rem;padding:6px 10px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">TravelWise</a>
+  <button class="hamburger" id="hamburger" onclick="toggleNav()">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-menu" id="navMenu">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/planner" class="active">Plan Trip</a>
+    <a href="/chatbot">AI Chatbot</a>
+    <a href="/logout">Logout</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-header">
+    <h1>Plan Your Perfect Trip</h1>
+    <p>Enter your route, select your interests, and let AI recommend the best destinations for you.</p>
+  </div>
+
+  <div class="planner-grid">
+
+    <!-- ── FORM ─────────────────────────────────────── -->
+    <div class="form-card">
+      <h2>Trip Details</h2>
+      <form id="planForm">
+
+        <!-- ROUTE -->
+        <div class="form-divider">📍 Route</div>
+        <div class="route-row">
+          <div class="form-group" style="margin-bottom:0">
+            <label>From (State)</label>
+            <select id="from_location" required>
+              <option value="">Select State / UT</option>
+              <optgroup label="── States ──">
+              <option>Andhra Pradesh</option>
+              <option>Arunachal Pradesh</option>
+              <option>Assam</option>
+              <option>Bihar</option>
+              <option>Chhattisgarh</option>
+              <option>Goa</option>
+              <option>Gujarat</option>
+              <option>Haryana</option>
+              <option>Himachal Pradesh</option>
+              <option>Jharkhand</option>
+              <option>Karnataka</option>
+              <option>Kerala</option>
+              <option>Madhya Pradesh</option>
+              <option>Maharashtra</option>
+              <option>Manipur</option>
+              <option>Meghalaya</option>
+              <option>Mizoram</option>
+              <option>Nagaland</option>
+              <option>Odisha</option>
+              <option>Punjab</option>
+              <option>Rajasthan</option>
+              <option>Sikkim</option>
+              <option>Tamil Nadu</option>
+              <option>Telangana</option>
+              <option>Tripura</option>
+              <option>Uttar Pradesh</option>
+              <option>Uttarakhand</option>
+              <option>West Bengal</option>
+              </optgroup>
+              <optgroup label="── Union Territories ──">
+              <option>Andaman & Nicobar</option>
+              <option>Chandigarh</option>
+              <option>Dadra & Nagar Haveli</option>
+              <option>Daman & Diu</option>
+              <option>Delhi</option>
+              <option>Jammu & Kashmir</option>
+              <option>Ladakh</option>
+              <option>Lakshadweep</option>
+              <option>Puducherry</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="route-arrow">→</div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>To (State)</label>
+            <select id="to_location">
+              <option value="">Any State / UT</option>
+              <optgroup label="── States ──">
+              <option>Andhra Pradesh</option>
+              <option>Arunachal Pradesh</option>
+              <option>Assam</option>
+              <option>Bihar</option>
+              <option>Chhattisgarh</option>
+              <option>Goa</option>
+              <option>Gujarat</option>
+              <option>Haryana</option>
+              <option>Himachal Pradesh</option>
+              <option>Jharkhand</option>
+              <option>Karnataka</option>
+              <option>Kerala</option>
+              <option>Madhya Pradesh</option>
+              <option>Maharashtra</option>
+              <option>Manipur</option>
+              <option>Meghalaya</option>
+              <option>Mizoram</option>
+              <option>Nagaland</option>
+              <option>Odisha</option>
+              <option>Punjab</option>
+              <option>Rajasthan</option>
+              <option>Sikkim</option>
+              <option>Tamil Nadu</option>
+              <option>Telangana</option>
+              <option>Tripura</option>
+              <option>Uttar Pradesh</option>
+              <option>Uttarakhand</option>
+              <option>West Bengal</option>
+              </optgroup>
+              <optgroup label="── Union Territories ──">
+              <option>Andaman & Nicobar</option>
+              <option>Chandigarh</option>
+              <option>Dadra & Nagar Haveli</option>
+              <option>Daman & Diu</option>
+              <option>Delhi</option>
+              <option>Jammu & Kashmir</option>
+              <option>Ladakh</option>
+              <option>Lakshadweep</option>
+              <option>Puducherry</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+        <p style="font-size:0.75rem;color:var(--subtle);margin-top:5px;margin-bottom:14px">
+          Leave "To" as "Any State" to explore all destinations matching your interests.
+        </p>
+
+        <!-- TRIP INFO -->
+        <div class="form-divider">🧳 Trip Info</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Trip Type</label>
+            <select id="trip_type" onchange="onTripTypeChange(this.value)">
+              <option>Solo</option>
+              <option>Couple</option>
+              <option>Friends</option>
+              <option>Family</option>
+              <option>Senior</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Season</label>
+            <select id="season">
+              <option>Winter</option>
+              <option>Summer</option>
+              <option>Monsoon</option>
+              <option>Spring</option>
+              <option>Autumn</option>
+            </select>
+          </div>
+        </div>
+        <!-- People selector — shown for Friends & Family -->
+        <div class="people-selector" id="peopleSelector">
+          <label>👥 Number of People</label>
+          <div class="people-count-row">
+            <button type="button" class="people-btn" onclick="changePeople(-1)">−</button>
+            <span class="people-num" id="peopleNum">2</span>
+            <button type="button" class="people-btn" onclick="changePeople(1)">+</button>
+            <span class="people-label" id="peopleLabel">friends travelling</span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Number of Days</label>
+            <input type="number" id="num_days" min="1" max="30" value="4">
+          </div>
+          <div class="form-group">
+            <label>Transport</label>
+            <select id="transport">
+              <option>Train</option>
+              <option>Flight</option>
+              <option>Bus</option>
+              <option>Car</option>
+              <option>Bike</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Budget <span class="range-val" id="budgetDisplay">₹25,000</span></label>
+          <input type="range" id="budget" min="5000" max="200000" step="1000" value="25000"
+                 oninput="updateBudget(this.value)">
+        </div>
+
+        <!-- INTERESTS -->
+        <div class="form-divider">✨ Interests <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--subtle)">(select all that apply)</span></div>
+        <div class="interest-grid" id="interestGrid">
+          <div class="interest-chip" data-value="beaches"      onclick="toggleInterest(this)"><span class="chip-icon">🏖️</span> Beaches</div>
+          <div class="interest-chip" data-value="hills"        onclick="toggleInterest(this)"><span class="chip-icon">🏔️</span> Hills</div>
+          <div class="interest-chip" data-value="adventure"    onclick="toggleInterest(this)"><span class="chip-icon">🧗</span> Adventure</div>
+          <div class="interest-chip" data-value="history"      onclick="toggleInterest(this)"><span class="chip-icon">🏛️</span> History</div>
+          <div class="interest-chip" data-value="nature"       onclick="toggleInterest(this)"><span class="chip-icon">🌿</span> Nature</div>
+          <div class="interest-chip" data-value="spiritual"    onclick="toggleInterest(this)"><span class="chip-icon">🕉️</span> Spiritual</div>
+          <div class="interest-chip" data-value="wildlife"     onclick="toggleInterest(this)"><span class="chip-icon">🐯</span> Wildlife</div>
+          <div class="interest-chip" data-value="food"         onclick="toggleInterest(this)"><span class="chip-icon">🍛</span> Food & Culture</div>
+          <div class="interest-chip" data-value="nightlife"    onclick="toggleInterest(this)"><span class="chip-icon">🎉</span> Nightlife</div>
+          <div class="interest-chip" data-value="photography"  onclick="toggleInterest(this)"><span class="chip-icon">📸</span> Photography</div>
+          <div class="interest-chip" data-value="trekking"     onclick="toggleInterest(this)"><span class="chip-icon">🥾</span> Trekking</div>
+          <div class="interest-chip" data-value="famous"       onclick="toggleInterest(this)"><span class="chip-icon">⭐</span> Famous Places</div>
+        </div>
+        <div class="selected-count" id="selectedCount"></div>
+
+        <button type="submit" class="btn-plan" id="planBtn">🔍 Find Destinations</button>
+      </form>
+    </div>
+
+    <!-- ── RESULTS ───────────────────────────────────── -->
+    <div id="resultsArea">
+      <div class="empty-state" id="emptyState">
+        <div class="emoji">🗺️</div>
+        <h3>Your recommendations will appear here</h3>
+        <p>Enter your route and interests, then click "Find Destinations"</p>
+      </div>
+      <div class="loading" id="loadingState">
+        <div class="spinner"></div>
+        <p>AI is analysing destinations for you...</p>
+      </div>
+      <div id="resultsContent" style="display:none">
+        <div class="results-header">
+          <h2>Recommended Destinations</h2>
+          <span class="results-count" id="resultsCount"></span>
+        </div>
+        <div class="filter-pills" id="filterPills"></div>
+        <div class="rec-grid" id="recGrid"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- CHATBOT -->
+<div class="chatbot-fab" onclick="toggleChat()">🤖</div>
+<div class="chatbot-panel" id="chatPanel">
+  <div class="chat-header">
+    <h4>🌍 TravelWise AI Assistant</h4>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg bot">Hello! I'm your AI travel assistant. Ask me about destinations, budgets, or best seasons! 🌏</div>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="chatInput" placeholder="Ask anything about travel..."
+           onkeypress="if(event.key==='Enter')sendChat()">
+    <button class="chat-send" onclick="sendChat()">↑</button>
+  </div>
+</div>
+
+<script>
+const EMOJIS = {
+  'Beach':'🏖️','Hill Station':'🏔️','Heritage':'🏛️',
+  'Nature':'🌿','Adventure':'🧗','Spiritual':'🕉️'
+};
+const INT_LABELS = {
+  beaches:'Beaches', hills:'Hills', adventure:'Adventure',
+  history:'History', nature:'Nature', spiritual:'Spiritual',
+  wildlife:'Wildlife', food:'Food & Culture', nightlife:'Nightlife',
+  photography:'Photography', trekking:'Trekking', famous:'Famous Places'
+};
+
+// ── People selector ──────────────────────────────────────────────────────────
+let _minPeople = 2;
+
+function onTripTypeChange(val) {
+  const sel = document.getElementById('peopleSelector');
+  const lbl = document.getElementById('peopleLabel');
+  const num = document.getElementById('peopleNum');
+
+  if (val === 'Solo') {
+    sel.classList.remove('show');
+  } else if (val === 'Couple') {
+    sel.classList.remove('show');  // always exactly 2, no selector
+  } else if (val === 'Friends') {
+    sel.classList.add('show');
+    _minPeople = 2;
+    lbl.textContent = 'friends travelling';
+    if (parseInt(num.textContent) < 2) num.textContent = 2;
+  } else if (val === 'Family') {
+    sel.classList.add('show');
+    _minPeople = 2;
+    lbl.textContent = 'family members';
+    if (parseInt(num.textContent) < 2) num.textContent = 2;
+  } else if (val === 'Senior') {
+    sel.classList.add('show');
+    _minPeople = 1;
+    lbl.textContent = 'senior travellers';
+    if (parseInt(num.textContent) < 1) num.textContent = 1;
+  }
+}
+
+function changePeople(delta) {
+  const el  = document.getElementById('peopleNum');
+  const cur = parseInt(el.textContent);
+  const nxt = cur + delta;
+  if (nxt >= _minPeople && nxt <= 20) el.textContent = nxt;
+}
+
+// ── Mobile nav toggle ────────────────────────────────────────────────────────
+function toggleNav() {
+  document.getElementById('navMenu').classList.toggle('open');
+}
+// Close nav when clicking outside
+document.addEventListener('click', function(e) {
+  const nav = document.getElementById('navMenu');
+  const btn = document.getElementById('hamburger');
+  if (nav && btn && !nav.contains(e.target) && !btn.contains(e.target)) {
+    nav.classList.remove('open');
+  }
+});
+
+// ── Budget slider ─────────────────────────────────────────────────────────────
+function updateBudget(v) {
+  document.getElementById('budgetDisplay').textContent =
+    '₹' + parseInt(v).toLocaleString('en-IN');
+}
+
+// ── Interest chip toggle ──────────────────────────────────────────────────────
+function toggleInterest(chip) {
+  chip.classList.toggle('selected');
+  const selected = document.querySelectorAll('.interest-chip.selected');
+  const countEl  = document.getElementById('selectedCount');
+  if (selected.length > 0) {
+    countEl.textContent = `${selected.length} interest${selected.length>1?'s':''} selected`;
+    countEl.classList.add('show');
+  } else {
+    countEl.classList.remove('show');
+  }
+}
+
+function getSelectedInterests() {
+  return [...document.querySelectorAll('.interest-chip.selected')]
+    .map(c => c.dataset.value);
+}
+
+// ── Transport icon helper ──────────────────────────────────────────────────────
+function getTransportIcon(transport) {
+  const icons = {'Train':'🚆','Flight':'✈️','Bus':'🚌','Car':'🚗','Bike':'🏍️'};
+  return icons[transport] || '🕐';
+}
+
+// ── Travel time formatter (uses backend-computed hours) ──────────────────────
+function formatTravelTime(hrs, transport) {
+  if (!hrs && hrs !== 0) return '';
+  const h    = parseFloat(hrs);
+  const icons = { 'Train':'🚆','Flight':'✈️','Bus':'🚌','Car':'🚗','Bike':'🏍️' };
+  const icon  = icons[transport] || '🕐';
+
+  // Format hours nicely: 65.5h → "65h 30min", 2.5h → "2h 30min"
+  const wholeH = Math.floor(h);
+  const mins   = Math.round((h - wholeH) * 60);
+  let timeStr  = wholeH > 0 ? wholeH + 'h' : '';
+  if (mins > 0) timeStr += (timeStr ? ' ' : '') + mins + 'min';
+  if (!timeStr) timeStr = '< 1h';
+
+  return `${icon} ~${timeStr} travel`;
+}
+
+// ── Form submit ───────────────────────────────────────────────────────────────
+document.getElementById('planForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('planBtn');
+  btn.disabled = true; btn.textContent = 'Analysing...';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('resultsContent').style.display = 'none';
+
+  const interests = getSelectedInterests();
+  const tripType = document.getElementById('trip_type').value;
+  // People count based on trip type
+  let people = 1;
+  if (tripType === 'Solo')    people = 1;
+  else if (tripType === 'Couple') people = 2;
+  else people = parseInt(document.getElementById('peopleNum').textContent) || 2;
+
+  const payload = {
+    from_location: document.getElementById('from_location').value,
+    to_location:   document.getElementById('to_location').value,
+    budget:        document.getElementById('budget').value,
+    trip_type:     tripType,
+    num_days:      document.getElementById('num_days').value,
+    transport:     document.getElementById('transport').value,
+    season:        document.getElementById('season').value,
+    interests:     interests,
+    people:        people,
+  };
+
+  try {
+    const res  = await fetch('/api/recommend', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      renderResults(data.results, payload, interests);
+    } else {
+      alert('Error: ' + data.message);
+    }
+  } catch(err) {
+    alert('Request failed. Please try again.');
+  } finally {
+    btn.disabled = false; btn.textContent = '🔍 Find Destinations';
+    document.getElementById('loadingState').style.display = 'none';
+  }
+});
+
+// ── Render results ────────────────────────────────────────────────────────────
+function renderResults(results, payload, interests) {
+  const grid   = document.getElementById('recGrid');
+  const pills  = document.getElementById('filterPills');
+
+  // Filter pills showing active filters
+  pills.innerHTML = '';
+  if (payload.to_location)
+    pills.innerHTML += `<span class="filter-pill">📍 To: ${payload.to_location}</span>`;
+  if (interests.length)
+    interests.forEach(i => pills.innerHTML +=
+      `<span class="filter-pill">✓ ${INT_LABELS[i]||i}</span>`);
+
+  document.getElementById('resultsCount').textContent =
+    `${results.length} destination${results.length!==1?'s':''} found`;
+
+  grid.innerHTML = '';
+
+  if (results.length === 0) {
+    grid.innerHTML = `
+      <div class="no-results-msg" style="grid-column:1/-1">
+        <div style="font-size:2.5rem;margin-bottom:12px">😕</div>
+        <h3>No destinations found</h3>
+        <p>Try broadening your search — clear the "To" field or select fewer interests.</p>
+      </div>`;
+    document.getElementById('resultsContent').style.display = 'block';
+    return;
+  }
+
+  results.forEach(({destination:d, analysis:a, score, sentiment, matched_interests}, i) => {
+    const emoji = EMOJIS[d.type] || '📍';
+    const card  = document.createElement('div');
+    card.className = `rec-card ${a.feasible ? 'feasible' : ''}`;
+
+    const matchedHtml = (matched_interests && matched_interests.length)
+      ? `<div class="interests-matched">
+           ${matched_interests.map(mi=>`<span class="int-tag">✓ ${INT_LABELS[mi]||mi}</span>`).join('')}
+         </div>` : '';
+
+    card.innerHTML = `
+      <div class="rec-card-header">
+        <span class="dest-emoji">${emoji}</span>
+        <div class="dest-name">${d.name}</div>
+        <div class="dest-meta">${d.type} · ${d.state || d.region + ' India'}</div>
+        <div style="font-size:0.72rem;opacity:0.8;margin-top:3px">
+          ${formatTravelTime(a.travel_hours, payload.transport)}
+        </div>
+        <div class="feasibility-badge ${a.feasible?'yes':'no'}">
+          ${a.feasible ? '✓ Within Budget' : '⚠ Over Budget'}
+        </div>
+      </div>
+      <div class="rec-card-body">
+        <div class="score-bar"><div class="score-fill" style="width:${Math.min(score,100)}%"></div></div>
+        ${matchedHtml}
+        <div class="cost-row" style="border-bottom:1px solid #e2e8f0;padding-bottom:8px;margin-bottom:8px">
+          <span class="cost-label" style="font-weight:600;color:var(--ink)">Total Estimated Cost</span>
+          <span class="cost-val primary" style="font-size:1rem;font-weight:700">₹${a.total_cost.toLocaleString('en-IN')}</span>
+        </div>
+        <div class="cost-row"><span class="cost-label">👥 Travellers</span><span class="cost-val">${a.people} ${a.people === 1 ? 'person' :
+              payload.trip_type === 'Family' ? 'family members' :
+              payload.trip_type === 'Senior' ? 'senior travellers' :
+              payload.trip_type === 'Couple' ? 'travellers (couple)' :
+              'friends'}</span></div>
+        <div class="cost-row"><span class="cost-label">${getTransportIcon(payload.transport)} Travel Time</span><span class="cost-val">${formatTravelTime(a.travel_hours, payload.transport)}</span></div>
+        <div class="cost-row"><span class="cost-label">🏨 Accommodation</span><span class="cost-val">₹${a.cost_breakdown.accommodation.toLocaleString('en-IN')}</span></div>
+        <div class="cost-row"><span class="cost-label">🍽️ Food</span><span class="cost-val">₹${a.cost_breakdown.food.toLocaleString('en-IN')}</span></div>
+        <div class="cost-row"><span class="cost-label">🚆 Transport</span><span class="cost-val">₹${a.cost_breakdown.transport.toLocaleString('en-IN')}</span></div>
+        <div class="cost-row"><span class="cost-label">🎯 Activities</span><span class="cost-val">₹${a.cost_breakdown.activities.toLocaleString('en-IN')}</span></div>
+        <div class="cost-row"><span class="cost-label">🛍️ Shopping & Misc</span><span class="cost-val">₹${a.cost_breakdown.misc.toLocaleString('en-IN')}</span></div>
+        ${a.feasible
+          ? `<div class="cost-row" style="margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0"><span class="cost-label" style="color:#16a34a;font-weight:500">✅ Budget Remaining</span><span class="cost-val" style="color:#16a34a;font-weight:600">₹${a.budget_remaining.toLocaleString('en-IN')}</span></div>`
+          : `<div class="cost-row" style="margin-top:6px;padding-top:6px;border-top:1px solid #e2e8f0"><span class="cost-label" style="color:#dc2626;font-weight:500">⚠️ Over Budget By</span><span class="cost-val" style="color:#dc2626;font-weight:600">₹${(a.total_cost - parseInt(payload.budget)).toLocaleString('en-IN')}</span></div>`
+        }
+        <div class="sentiment-row">
+          <span style="font-size:0.78rem;color:var(--subtle)">Reviews:</span>
+          <span class="sentiment-badge ${sentiment.label === 'No Reviews' ? 'no-reviews' : sentiment.label}">
+            ${sentiment.label === 'No Reviews'
+              ? 'No Reviews Yet'
+              : sentiment.label + ' · ' + sentiment.total + ' review' + (sentiment.total!==1?'s':'')}
+          </span>
+        </div>
+        <div class="highlights">
+          ${d.highlights.map(h=>`<span class="hl-tag">${h}</span>`).join('')}
+        </div>
+        <div class="card-actions">
+          <button class="btn-itinerary"
+            onclick="generateItinerary('${d.name}',${payload.num_days},'${payload.trip_type}','${payload.from_location}',${payload.budget},'${payload.transport}','${payload.season}')">
+            📋 View Itinerary
+          </button>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+
+  document.getElementById('resultsContent').style.display = 'block';
+}
+
+// ── Itinerary ─────────────────────────────────────────────────────────────────
+async function generateItinerary(destination, num_days, trip_type, from_location, budget, transport, season) {
+  const res = await fetch('/api/itinerary', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      destination,
+      num_days,
+      trip_type,
+      from_location,
+      budget,
+      transport,
+      season
+    })
+  });
+  const data = await res.json();
+  if (data.status === 'success') {
+    sessionStorage.setItem('itinerary', JSON.stringify(data.itinerary));
+    window.location.href = '/itinerary';
+  }
+}
+
+// ── Chatbot ───────────────────────────────────────────────────────────────────
+function toggleChat() {
+  document.getElementById('chatPanel').classList.toggle('open');
+}
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim(); if (!msg) return;
+  input.value = '';
+  appendMsg(msg, 'user');
+  const res  = await fetch('/api/chat', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({message: msg})
+  });
+  const data = await res.json();
+  setTimeout(() => appendMsg(data.reply, 'bot'), 350);
+}
+function appendMsg(text, type) {
+  const msgs = document.getElementById('chatMessages');
+  const div  = document.createElement('div');
+  div.className = `chat-msg ${type}`;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+</script>
+</body>
+</html>

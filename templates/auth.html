@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ 'Join' if mode == 'register' else 'Welcome Back' }} — TravelWise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0;padding:0;box-sizing:border-box; }
+:root { --ink:#0d1117;--sand:#f5efe6;--gold:#c9a84c;--teal:#1a6b6b;--subtle:#718096;--error:#e53e3e; }
+body { font-family:'DM Sans',sans-serif; background:var(--ink); min-height:100vh; display:grid; grid-template-columns:1fr 1fr; }
+
+.left-panel {
+  background: linear-gradient(135deg, var(--teal) 0%, #0d3d3d 50%, var(--ink) 100%);
+  display:flex; flex-direction:column; justify-content:center; padding:80px 60px;
+  position:relative; overflow:hidden;
+}
+.left-panel::before {
+  content:''; position:absolute; top:-30%; right:-20%;
+  width:500px; height:500px; border-radius:50%;
+  background:radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 70%);
+}
+.panel-logo { font-family:'Playfair Display',serif; font-size:2rem; color:var(--gold); margin-bottom:60px; letter-spacing:2px; }
+.panel-logo em { font-style:italic; }
+.panel-headline { font-family:'Playfair Display',serif; font-size:2.5rem; color:#fff; line-height:1.2; margin-bottom:20px; }
+.panel-sub { color:rgba(255,255,255,0.6); line-height:1.8; margin-bottom:50px; }
+.features-list { list-style:none; display:flex; flex-direction:column; gap:16px; }
+.features-list li { display:flex; align-items:center; gap:12px; color:rgba(255,255,255,0.8); font-size:0.9rem; }
+.feat-dot { width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0; }
+
+.right-panel {
+  background:var(--sand); display:flex; align-items:center; justify-content:center; padding:60px;
+}
+.form-box { width:100%; max-width:400px; }
+.form-title { font-family:'Playfair Display',serif; font-size:2rem; color:var(--ink); margin-bottom:8px; }
+.form-subtitle { color:var(--subtle); margin-bottom:36px; font-size:0.95rem; }
+.flash-msg { background:#fff3cd; border:1px solid #ffc107; border-radius:4px; padding:12px 16px; margin-bottom:20px; color:#856404; font-size:0.9rem; }
+.flash-msg.error { background:#fee2e2; border-color:var(--error); color:var(--error); }
+
+.form-group { margin-bottom:20px; }
+label { display:block; font-size:0.85rem; font-weight:500; color:var(--ink); margin-bottom:6px; letter-spacing:0.5px; text-transform:uppercase; }
+input {
+  width:100%; padding:14px 16px; background:#fff;
+  border:1.5px solid #e2e8f0; border-radius:4px;
+  font-size:0.95rem; font-family:'DM Sans',sans-serif;
+  transition:border-color 0.2s; outline:none; color:var(--ink);
+}
+input:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(26,107,107,0.1); }
+
+.btn-submit {
+  width:100%; padding:16px; background:var(--ink);
+  color:#fff; border:none; border-radius:4px; cursor:pointer;
+  font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:500;
+  letter-spacing:0.5px; transition:all 0.3s; margin-top:8px;
+}
+.btn-submit:hover { background:var(--teal); transform:translateY(-1px); }
+.form-switch { text-align:center; margin-top:24px; font-size:0.9rem; color:var(--subtle); }
+.form-switch a { color:var(--teal); text-decoration:none; font-weight:500; }
+.form-switch a:hover { text-decoration:underline; }
+.back-home { position:absolute; top:24px; left:24px; color:rgba(255,255,255,0.6); text-decoration:none; font-size:0.85rem; }
+.back-home:hover { color:#fff; }
+
+
+/* ── ENHANCED MOBILE ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  body{grid-template-columns:1fr;min-height:100vh}
+  .left-panel{display:none}
+  .right-panel{padding:32px 24px;min-height:100vh;align-items:flex-start;padding-top:60px}
+  .form-box{max-width:100%}
+  .form-title{font-size:1.6rem}
+  input{padding:13px 14px;font-size:0.9rem}
+  .btn-submit{padding:14px}
+}
+@media (max-width: 480px) {
+  .right-panel{padding:24px 16px;padding-top:48px}
+  .form-title{font-size:1.4rem}
+  .form-subtitle{font-size:0.88rem}
+}
+
+/* Mobile top bar with back link */
+.mobile-topbar{display:none;padding:16px 20px;background:var(--ink);
+  position:fixed;top:0;left:0;right:0;z-index:100;align-items:center;justify-content:space-between}
+.mobile-topbar .logo{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.2rem;letter-spacing:2px}
+.mobile-topbar a.back{color:rgba(255,255,255,0.6);text-decoration:none;font-size:0.85rem}
+@media (max-width: 768px) {
+  .mobile-topbar{display:flex}
+}
+
+</style>
+</head>
+<body>
+<!-- Mobile top bar (shown only on small screens) -->
+<div class="mobile-topbar">
+  <a href="/" class="back">← Home</a>
+  <div class="logo">TravelWise</div>
+  <div style="width:50px"></div>
+</div>
+
+<div class="left-panel">
+  <a href="/" class="back-home">← Back to home</a>
+  <div class="panel-logo">TravelWise</div>
+  <h2 class="panel-headline">Plan Your Perfect<br>Indian Journey</h2>
+  <p class="panel-sub">From the beaches of Goa to the peaks of Ladakh — TravelWise helps you plan every detail of your perfect trip across India.</p>
+  <ul class="features-list">
+    <li><div class="feat-dot"></div>370+ destinations across India</li>
+    <li><div class="feat-dot"></div>Smart budget planning & cost breakdown</li>
+    <li><div class="feat-dot"></div>Personalised day-by-day itinerary</li>
+    <li><div class="feat-dot"></div>AI travel assistant for instant answers</li>
+    <li><div class="feat-dot"></div>Real traveller reviews & ratings</li>
+  </ul>
+</div>
+
+<div class="right-panel">
+  <div class="form-box">
+    <h1 class="form-title">{{ 'Create Account' if mode == 'register' else 'Welcome Back' }}</h1>
+    <p class="form-subtitle">{{ 'Join thousands planning smarter trips.' if mode == 'register' else 'Sign in to continue your journey.' }}</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash-msg {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ '/register' if mode == 'register' else '/login' }}">
+      {% if mode == 'register' %}
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="traveler_john" required>
+      </div>
+      {% endif %}
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" name="email" placeholder="you@example.com" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="••••••••" required minlength="6">
+      </div>
+      <button type="submit" class="btn-submit">{{ 'Create Account →' if mode == 'register' else 'Sign In →' }}</button>
+    </form>
+
+    <p class="form-switch">
+      {% if mode == 'register' %}
+        Already have an account? <a href="/login">Sign in</a>
+      {% else %}
+        New to TravelWise? <a href="/register">Create account</a>
+      {% endif %}
+    </p>
+  </div>
+</div>
+</body>
+</html>
