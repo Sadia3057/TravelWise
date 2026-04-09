@@ -1,10 +1,3 @@
-"""
-TravelWise AI Chatbot
-=====================
-Powered by NVIDIA NIM API (Free) — LLaMA 3.1 8B model,
-no credit card required, 40 requests/min free tier.
-"""
-
 import urllib.request
 import urllib.error
 import json
@@ -19,8 +12,8 @@ def _load_api_key() -> str:
     if 'config' in sys.modules:
         del sys.modules['config']
     try:
-        import config as _cfg
-        return _cfg.NVIDIA_API_KEY.strip()
+        import os
+        return os.getenv("NVIDIA_API_KEY", "").strip()
     except AttributeError:
         return ""
     except Exception:

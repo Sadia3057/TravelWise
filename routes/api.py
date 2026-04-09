@@ -175,8 +175,8 @@ def _load_api_key():
     if 'config' in sys.modules:
         del sys.modules['config']
     try:
-        import config as _cfg
-        return _cfg.OPENWEATHER_API_KEY.strip()
+        import os
+        return os.getenv("OPENWEATHER_API_KEY", "").strip()
     except Exception:
         return ""
 
@@ -288,9 +288,9 @@ def send_itinerary_email():
     try:
         if "config" in sys.modules:
             del sys.modules["config"]
-        import config as _cfg
-        smtp_email    = _cfg.SMTP_EMAIL.strip()
-        smtp_password = _cfg.SMTP_PASSWORD.strip()
+        import os
+        smtp_email = os.getenv("SMTP_EMAIL", "").strip()
+        smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
     except Exception as e:
         return jsonify({"status": "error", "message": "Email not configured. Add SMTP_EMAIL and SMTP_PASSWORD to config.py"}), 500
 
